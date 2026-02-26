@@ -18,4 +18,15 @@ pip install -r requirements.txt
 ```
 
 ## 📄 许可证
-本项目采用 [MIT License](https://www.google.com/search?q=LICENSE) 协议。
+本项目采用 [MIT License](https://opensource.org/licenses/MIT) 协议。
+
+## 📢 鸣谢与参考
+本仓库中的部分代码逻辑与 UI 设计参考了以下视频教程：
+
+教程名称：【已完结】PySide6百炼成真，带你系统性入门Qt
+
+创作者：Python调包侠-Bemake
+
+链接：https://www.bilibili.com/video/BV1c84y1N7iL?spm_id_from=0.0.homepage.video_card.click
+
+感谢原作者的无私分享，本项目仅用于个人学习与技术练习。
