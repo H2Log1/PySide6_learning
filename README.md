@@ -22,7 +22,7 @@ pip install -r requirements.txt
 ## 📄 License
 This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
 
-📢 Acknowledgements
+## 📢 Acknowledgements
 Parts of the code and UI designs in this repository are inspired by or based on the following tutorial:
 
 Tutorial: 【已完结】PySide6百炼成真，带你系统性入门Qt
