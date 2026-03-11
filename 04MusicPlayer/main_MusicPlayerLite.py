@@ -9,7 +9,8 @@ from PySide6.QtCore import QUrl, Qt
 
 from Ui_playerLite import Ui_Form
 
-PLAYLIST_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "playlist.json")
+_APP_DIR = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+PLAYLIST_FILE = os.path.join(_APP_DIR, "playlist.json")
 
 
 def format_ms(ms):
