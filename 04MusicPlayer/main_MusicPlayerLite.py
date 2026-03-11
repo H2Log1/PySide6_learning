@@ -10,7 +10,8 @@ from PySide6.QtCore import QUrl, Qt
 from Ui_playerLite import Ui_Form
 
 _APP_DIR = os.path.dirname(sys.executable) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
-PLAYLIST_FILE = os.path.join(_APP_DIR, "playlist.json")
+CONFIG_FILE = os.path.join(_APP_DIR, "config.json")
+AUDIO_EXTS = {".mp3", ".flac", ".wav", ".ogg", ".m4a"}
 
 
 def format_ms(ms):
@@ -34,9 +35,10 @@ class MusicPlayerLite(QWidget, Ui_Form):
         self.model.setHorizontalHeaderLabels(["歌名"])
         self.musicTable.setModel(self.model)
         
+        self.music_dir = ""
         self.setup_ui_extras()
         self.init_connections()
-        self.load_playlist()
+        self.load_config()
 
     def setup_ui_extras(self):
         header = self.musicTable.horizontalHeader()
@@ -74,39 +76,41 @@ class MusicPlayerLite(QWidget, Ui_Form):
 
 
     def import_music(self):
-        files, _ = QFileDialog.getOpenFileNames(self, "选择音频", "", "音频 (*.mp3 *.flac *.wav *.ogg *.m4a)")
-        if files:
-            for f in files:
-                name = os.path.splitext(os.path.basename(f))[0]
+        start_dir = self.music_dir or ""
+        folder = QFileDialog.getExistingDirectory(self, "选择音乐目录", start_dir)
+        if folder:
+            self.music_dir = folder
+            self.save_config()
+            self.scan_directory()
 
+    def scan_directory(self):
+        """扫描 self.music_dir 并刷新列表"""
+        self.model.removeRows(0, self.model.rowCount())
+        if not self.music_dir or not os.path.isdir(self.music_dir):
+            return
+        for fname in sorted(os.listdir(self.music_dir)):
+            if os.path.splitext(fname)[1].lower() in AUDIO_EXTS:
+                full = os.path.join(self.music_dir, fname)
+                name = os.path.splitext(fname)[0]
                 self.model.appendRow([
                     QStandardItem(name),
-                    QStandardItem(f),
+                    QStandardItem(full),
                 ])
-            self.save_playlist()
 
-    def save_playlist(self):
-        playlist = []
-        for row in range(self.model.rowCount()):
-            playlist.append(self.model.item(row, 1).text())
-        with open(PLAYLIST_FILE, "w", encoding="utf-8") as f:
-            json.dump(playlist, f, ensure_ascii=False, indent=2)
+    def save_config(self):
+        with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+            json.dump({"music_dir": self.music_dir}, f, ensure_ascii=False, indent=2)
 
-    def load_playlist(self):
-        if not os.path.exists(PLAYLIST_FILE):
+    def load_config(self):
+        if not os.path.exists(CONFIG_FILE):
             return
         try:
-            with open(PLAYLIST_FILE, "r", encoding="utf-8") as f:
-                playlist = json.load(f)
+            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                cfg = json.load(f)
         except (json.JSONDecodeError, OSError):
             return
-        for path in playlist:
-            if os.path.isfile(path):
-                name = os.path.splitext(os.path.basename(path))[0]
-                self.model.appendRow([
-                    QStandardItem(name),
-                    QStandardItem(path),
-                ])
+        self.music_dir = cfg.get("music_dir", "")
+        self.scan_directory()
 
     def toggle_playback(self):
         state = self.player.playbackState()
