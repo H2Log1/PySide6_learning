@@ -1,5 +1,6 @@
 import sys
 import os
+import json
 from PySide6.QtWidgets import (QApplication, QWidget, QFileDialog, 
                              QHeaderView, QAbstractItemView, QLabel)
 from PySide6.QtGui import QStandardItemModel, QStandardItem
@@ -7,6 +8,8 @@ from PySide6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PySide6.QtCore import QUrl, Qt
 
 from Ui_playerLite import Ui_Form
+
+PLAYLIST_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "playlist.json")
 
 
 def format_ms(ms):
@@ -32,6 +35,7 @@ class MusicPlayerLite(QWidget, Ui_Form):
         
         self.setup_ui_extras()
         self.init_connections()
+        self.load_playlist()
 
     def setup_ui_extras(self):
         header = self.musicTable.horizontalHeader()
@@ -77,6 +81,30 @@ class MusicPlayerLite(QWidget, Ui_Form):
                 self.model.appendRow([
                     QStandardItem(name),
                     QStandardItem(f),
+                ])
+            self.save_playlist()
+
+    def save_playlist(self):
+        playlist = []
+        for row in range(self.model.rowCount()):
+            playlist.append(self.model.item(row, 1).text())
+        with open(PLAYLIST_FILE, "w", encoding="utf-8") as f:
+            json.dump(playlist, f, ensure_ascii=False, indent=2)
+
+    def load_playlist(self):
+        if not os.path.exists(PLAYLIST_FILE):
+            return
+        try:
+            with open(PLAYLIST_FILE, "r", encoding="utf-8") as f:
+                playlist = json.load(f)
+        except (json.JSONDecodeError, OSError):
+            return
+        for path in playlist:
+            if os.path.isfile(path):
+                name = os.path.splitext(os.path.basename(path))[0]
+                self.model.appendRow([
+                    QStandardItem(name),
+                    QStandardItem(path),
                 ])
 
     def toggle_playback(self):
